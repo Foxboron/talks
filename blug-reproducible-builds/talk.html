@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reproducible builds, rebuilder and transparency logs</title>
+    <meta charset="utf-8">
+    <style>
+    </style>	
+<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Reproducible builds
+## BLUG - 29 oktober 2020
+### Morten Linderud
+
+---
+layout: false
+
+# Innhold
+* whoami
+* Programvareleveringskjeder
+* Reproducible Builds
+* Reprodusering
+
+Spoiler: Live demoer! 💀
+
+---
+
+# $ whoami
+
+* Morten Linderud - Foxboron
+
+* Jobber som utvikler innenfor IT-Sikkerhet
+
+* Drevet med Open-Source siden 2012
+
+* Open Source Securitty Foundation
+  * Vulnerability Disclosures
+
+* Arch Linux siden 2016
+  * "Trusted User" - Passer på AUR
+  * Pakker pakker: go, podman, containerd mm...
+  * Sikkerhetsteamet
+
+---
+
+# $ whoami
+
+* Morten Linderud - Foxboron
+
+* Jobber som utvikler innenfor IT-Sikkerhet
+
+* Drevet med Open-Source siden 2012
+
+* Open Source Securitty Foundation
+  * Vulnerability Disclosures
+
+* Arch Linux siden 2016
+  * "Trusted User" - Passer på AUR
+  * Pakker pakker: go, podman, containerd mm...
+  * Sikkerhetsteamet
+
+* 🍺🥂Reproducible Builds🎆🕺
+
+---
+template: inverse
+
+# Trust, but verify
+## - Russisk ordtak
+
+---
+template: inverse
+
+# Live Demo 💀
+
+
+???
+
+Alice & Bob
+
+# Alice
+make
+
+git ini --bare /tmp/alice.git
+
+git remote add origin /tmp/alice.git
+
+git add .
+
+git c
+
+git push origin master
+
+# Bob
+git clone /tmp/alice.git
+./main
+
+---
+template: inverse
+# Programvareleveringskjeder
+## (Software Supply Chains)
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+]
+
+.right-column[
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### SDL
+]
+
+.right-column[
+- Software Delivery Lifecycle:
+  - Planlegging
+  - Analyse
+  - Design
+  - Implementasjon
+  - Testing og Integrasjon
+  - Vedlikehold
+]
+
+???
+
+Sikkerhet i kontekst av SDL:
+- C er utrygt!
+- Rust er trygt!
+
+F.eks
+Dynamisk eller statiske typer!
+
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### SDL
+]
+
+.right-column[
+.gray[
+- Software Delivery Lifecycle:
+  - Planlegging
+  - Analyse
+  - Design
+  - Implementasjon
+  - Testing og Integrasjon
+  - Vedlikehold
+]
+
+- Men hvem skriver koden?
+
+- Hvor hoster vi byggelinjer?
+
+- Hvem har tilgang til koden?
+
+- Hvem kontrollerer utgivelser?
+  - Kan noen gi ut en feilaktig utgivelser?
+]
+
+???
+
+Holistisk tilnærming
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### - SDL
+]
+
+.right-column[
+- *Alle* steg fra første linje kode til levert prosjekt!
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### - SDL
+### - Linux
+]
+
+.right-column[
+.gray[
+- *Alle* steg fra første linje kode til levert prosjekt!
+]
+### I Linux
+
+  - Hente og verifisere kildekoden til programvare utgivelser
+
+  - Laste opp kildepakken til byggeserver
+
+  - Bygget på en server
+
+  - Pakke signering
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### - SDL
+### - Linux
+]
+
+.right-column[
+.gray[
+- *Alle* steg fra første linje kode til levert prosjekt!
+]
+### I Linux
+.gray[
+- Hente og verifisere kildekoden til programvare utgivelser
+
+- Laste opp kildepakken til byggeserver
+
+- Bygget på en server
+
+- Pakke signering
+]
+  - Lastet opp til en tier 0 mirror
+
+  - Distribuert til mirrors
+
+  - ```shell
+  $ apt install python
+  ```
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Leveringskjeder
+### - SDL
+### - Linux
+### - Angrep
+]
+
+.right-column[
+- unrealircd (2010)
+
+- Security incident on Fedora infrastructure on 23 Jan 2011
+
+- FreeBSD Project Compromised In Cyber Attack (2012)
+
+- Red Hat's Ceph and Inktank code repositories were cracked (2015)
+
+- Linux Mint hit by malware infection on its website after hack (2016)
+
+- Mangemange pakker i NPM, Rubygems osv
+  - Publisert kode er forskjellig fra kildekoden(!)
+]
+
+???
+
+unrealirc: Kildekoden på mirrors (ikke koderepo) fikk en bakdør
+* Distribuert i gentoo
+
+* Fedora: Kompromitert brukerkonto. Tilgang til source control management (SCM)
+  Ingen kompromiterte pakker
+
+* FreeBSD: ssh nøkkel lekket. tredje-parts pakker mulig kompromitert
+
+* RedHat: Ingen skadevare ble publisert, men signerings nøkkler inndratt. Byttet ut med RH release key
+
+* Ruby: `boottstrap-sass`
+* NPM: `left-pad`
+
+---
+
+template: inverse
+# Reproduserbare Byggesystemer
+## (Reproducible Builds)
+
+
+---
+
+template: inverse
+## Reproducible builds are a set of software development practices that create an independently-verifiable path from source to binary code.
+
+---
+
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+* Samme kildekode produserer samme binære fil
+
+* En sterk kobling mellom artifakter
+
+* Integritet i leveringskjeden
+]
+---
+
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+.gray[
+* Samme kildekode produserer samme binære fil
+
+* En sterk kobling mellom artifakter
+
+* Integritet i leveringskjeden
+]
+* Hvem?
+  * Alpine Linux
+  * Arch Linux
+  * Debian
+  * F-Droid
+  * GNU Guix
+  * NetBSD
+  * NixOS
+  * OpenSUSE
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### Historie
+]
+
+.right-column[
+* 1986: Reflection on Trusting Trust - Ken Thompson
+
+* 2009: Diverse-Double Compilation - David A. Wheeler
+
+* 2013: Mike Perry & Tor Browser - Deterministic Builds
+
+* 2013: Debian starts the Reproducible Builds project
+  * Lunar at Debconf13
+
+* 2018: 90% of Debian reproducible
+
+* 2018: F-Droid allows self-signed APKs if there are identical builds
+
+.pics[![](pics/bullseye.jpg)]
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### Historie
+]
+
+.right-column[
+## Summits
+* Athens 2015
+
+* Berlin 2016
+
+* Berlin 2017
+
+* Paris 2018
+
+* Marrakesh 2019
+
+.pics[![](pics/marrakesh.gif)]
+]
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+]
+
+.right-column[
+* Tidspunkt
+  * `SOURCE_DATE_EPOCH`
+  * Unix tid for når byggingen skjedde
+  * `date -d "@${SOURCE_DATE_EPOCH:-$(date +%s)}"`
+]
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+]
+
+.right-column[
+.gray[
+* Tidspunkt
+  * `SOURCE_DATE_EPOCH`
+  * Unix tid for når byggingen skjedde
+  * `date -d "@${SOURCE_DATE_EPOCH:-$(date +%s)}"`
+]
+
+* Sortering av verdier
+  * `export PYTHONHASHSEED=0`
+]
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+]
+
+.right-column[
+.gray[
+* Tidspunkt
+  * `SOURCE_DATE_EPOCH`
+  * Unix tid for når byggingen skjedde
+  * `date -d "@${SOURCE_DATE_EPOCH:-$(date +%s)}"`
+
+* Sortering av verdier
+  * `export PYTHONHASHSEED=0`
+]
+* Innlagte byggestier
+  * Go: `-trimpath`
+  * GCC: `-ffile-prefix-map=OLD=NEW`
+]
+
+???
+
+Vise Alice & Bob med -trimpath
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+]
+
+.right-column[
+.gray[
+* Tidspunkt
+  * `SOURCE_DATE_EPOCH`
+  * Unix tid for når byggingen skjedde
+  * `date -d "@${SOURCE_DATE_EPOCH:-$(date +%s)}"`
+
+* Sortering av verdier
+  * `export PYTHONHASHSEED=0`
+
+* Innlagte byggestier
+  * Go: `-trimpath`
+  * GCC: `-ffile-prefix-map=OLD=NEW`
+]
+* `diffoscope`
+  * Prosjekt fra Reproducible Builds
+  * Finner forskjeller mellom filer
+  * Støtter masse formater!
+  * https://diffoscope.org/
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+]
+
+.right-column[
+* Cabrera, Ralph et al,  Software Reconstruction: Patterns for Reproducing Software Builds (2000)
+
+* Bill of Materials (BOM)
+]
+---
+
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+]
+
+.right-column[
+.gray[
+* Cabrera, Ralph et al,  Software Reconstruction: Patterns for Reproducing Software Builds (2000)
+
+* Bill of Materials (BOM)
+]
+* Lagrer verdiene i en byggeprosess
+  * Installerte pakker
+  * Byttestier
+  * Klokkeslett
+  * Byggeflags
+  * Kildekode
+
+* Brukes til å gjennskape pakker
+
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+]
+
+.right-column[
+Debian sitt format:
+
+```plain
+Format: 1.0
+Source: dh-make
+Binary: dh-make
+Architecture: all
+Version: 2.201802
+Checksums-Sha256:
+ 22c95094efbe79445336007dd[...] 42360 dh-make_2.201802_all.deb
+Build-Origin: Debian
+Build-Architecture: amd64
+Build-Kernel-Version: 4.9.0-8-amd64 #1 SMP Debian 4.9.110-3
+Build-Date: Thu, 06 Dec 2018 00:04:23 +0000
+Build-Path: /build/dh-make-2.201802
+Installed-Build-Depends:
+ autoconf (= 2.69-11),
+ automake (= 1:1.16.1-4),
+ [...]
+ xz-utils (= 5.2.2-1.3),
+ zlib1g (= 1:1.2.11.dfsg-1)
+Environment:
+ DEB_BUILD_OPTIONS="buildinfo=+all reproducible=+all parallel=16"
+ LANG="C"
+ LC_ALL="POSIX"
+ SOURCE_DATE_EPOCH="1543231660"
+```
+]
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+### Mer feil
+]
+
+.right-column[
+```bash
+curl -S "https://gitlab.com/[snip]/-/commit/deadbeef.patch"
+From: foobar
+Subject: subject
+
+Body
+---
+ doc/user/profile/index.md | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/doc/user/profile/index.md b/doc/user/profile/ind
+index 3610a2122b25..61d0a8e460ad 100644
+--- a/doc/user/profile/index.md
++++ b/doc/user/profile/index.md
+@@ -250,7 +250,27 @@ When the `_gitlab_session` expires or is
+[... actual diff ...]
+-- 
+2.26.2
+```
+]
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+### Mer feil
+]
+
+.right-column[
+```bash
+curl -S "https://gitlab.com/[snip]/-/commit/deadbeef.patch"
+From: foobar
+Subject: subject
+
+Body
+---
+ doc/user/profile/index.md | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/doc/user/profile/index.md b/doc/user/profile/ind
+index 3610a2122b25..61d0a8e460ad 100644
+--- a/doc/user/profile/index.md
++++ b/doc/user/profile/index.md
+@@ -250,7 +250,27 @@ When the `_gitlab_session` expires or is
+[... actual diff ...]
+-- 
+2.26.2 <<<-----
+```
+* Innlagt git versjon!
+* https://gitlab.com/gitlab-org/gitaly/-/issues/2842
+* Fikset i prod 😃
+]
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+### Mer feil
+### Reproduksjon
+]
+
+.right-column[
+* https://tests.reproducible-builds.org/
+  * CI system!
+  * Tester ikke distribuerte pakker.
+  * Debugging
+  * Bullseye/amd64: 94.8% reproduserbart
+]
+
+
+---
+.left-column[
+## Reproducible Builds
+### Historie
+### Feil
+### BUILDINFO
+### Mer feil
+### Reproduksjon
+]
+
+.right-column[
+.gray[
+* https://tests.reproducible-builds.org/
+  * CI system!
+  * Tester ikke distribuerte pakker.
+  * Debugging
+  * Bullseye/amd64: 94.8% reproduserbart
+]
+
+* https://reproducible.archlinux.org/
+  * Reproduserer distribuerte pakker(!)
+  * `rebuilderd` og `archlinux-repro`
+  * Totalt: ~76% reproduserbart
+]
+
+
+---
+
+template: inverse
+# Live Demo 💀
+## Reprodusere pakker
+
+???
+repro -f ./lsb-release*
+
+ diffoscope
+
+vis patch
+
+rebuild
+
+repo
+
+---
+.left-column[
+## Bidra!
+]
+
+.right-column[
+* Prøv å reproduser programvare du bruker.
+  * Løse bugs som dukker opp 😃
+
+* https://reproducible-builds.org
+  * Har info og dokumentasjon
+  * Månedlig status oppdatering
+
+* `#reproducible-builds` @ OFTC
+  * Vi har begynt med IRC møter igjen :)
+
+* `#archlinux-reproducible` @ Freenode
+]
+
+---
+.right-column[
+
+
+⠀
+
+
+
+.right-pic[![](pics/archconf.jpg)]
+### Morten Linderud
+Foxboron på IRC
+
+https://linderud.dev
+
+https://github.com/Foxboron
+
+Twitter: [MortenLinderud](https://twitter.com/MortenLinderud)
+
+Email:
+  * morten@linderud.pw
+  * foxboron@archlinux.org
+
+]
+---
+template: inverse
+
+# Ferdig! 🍺
+## Tid for Q&A
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark',
+          highlightLines: true,
+          countIncrementalSlides: false,
+          slideNumberFormat: ''
+        }) ;
+    </script>
+  </body>
+</html>

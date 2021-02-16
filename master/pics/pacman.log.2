@@ -1,0 +1,224 @@
+[root@tux /]# pacman --debug -Syu
+debug: pacman v5.1.3 - libalpm v11.0.3
+debug: config: attempting to read file /etc/pacman.conf
+debug: config: new section 'options'
+debug: config: HoldPkg: pacman
+debug: config: HoldPkg: glibc
+debug: config: xfercommand: /usr/bin/curl -L -C - -f -o %o %u
+debug: config: usedelta = 0.700000
+debug: config: arch: x86_64
+debug: config: SigLevel: Required
+debug: config: SigLevel: DatabaseOptional
+debug: config: LocalFileSigLevel: Optional
+debug: config: new section 'core'
+debug: config file /etc/pacman.conf, line 77: including /etc/pacman.d/mirrorlist
+debug: config: finished parsing /etc/pacman.conf
+debug: setup_libalpm called
+debug: option 'logfile' = /var/log/pacman.log
+debug: option 'gpgdir' = /etc/pacman.d/gnupg/
+debug: option 'hookdir' = /etc/pacman.d/hooks/
+debug: option 'cachedir' = /var/cache/pacman/pkg/
+debug: registering sync database 'core'
+debug: database path for tree core set to /var/lib/pacman/sync/core.db
+debug: "/var/lib/pacman/sync/core.db.sig" is not readable: No such file or directory
+debug: sig path /var/lib/pacman/sync/core.db.sig could not be opened
+debug: missing optional signature
+debug: setting usage of 15 for core repository
+debug: adding new server URL to database 'core': http://localhost:8080
+:: Synchronizing package databases...
+debug: running command: /usr/bin/curl -L -C - -f -o /var/lib/pacman/sync/core.db.part http://localhost:8080/core.db
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  1015  100  1015    0     0   991k      0 --:--:-- --:--:-- --:--:--  991k
+debug: running command: /usr/bin/curl -L -C - -f -o /var/lib/pacman/sync/core.db.sig.part http://localhost:8080/core.db.sig
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+curl: (22) The requested URL returned error: 404 Not Found
+debug: XferCommand command returned non-zero status code (5632)
+debug: "/var/lib/pacman/sync/core.db.sig" is not readable: No such file or directory
+debug: sig path /var/lib/pacman/sync/core.db.sig could not be opened
+debug: missing optional signature
+:: Starting full system upgrade...
+debug: checking for package upgrades
+debug: loading package cache for repository 'local'
+debug: added 99 packages to package cache for db 'local'
+debug: searching for replacements for acl in core
+debug: loading package cache for repository 'core'
+debug: opening archive /var/lib/pacman/sync/core.db
+debug: added 1 packages to package cache for db 'core'
+debug: new version of 'acl' found (2.2.53-1 => 2.2.53-2)
+debug: adding package acl-2.2.53-2 to the transaction targets
+debug: searching for replacements for arch-install-scripts in core
+debug: searching for replacements for archlinux-keyring in core
+debug: searching for replacements for argon2 in core
+debug: searching for replacements for attr in core
+debug: searching for replacements for audit in core
+debug: searching for replacements for bash in core
+debug: searching for replacements for bzip2 in core
+debug: searching for replacements for ca-certificates in core
+debug: searching for replacements for ca-certificates-mozilla in core
+debug: searching for replacements for ca-certificates-utils in core
+debug: searching for replacements for coreutils in core
+debug: searching for replacements for cracklib in core
+debug: searching for replacements for cryptsetup in core
+debug: searching for replacements for curl in core
+debug: searching for replacements for db in core
+debug: searching for replacements for dbus in core
+debug: searching for replacements for device-mapper in core
+debug: searching for replacements for e2fsprogs in core
+debug: searching for replacements for expat in core
+debug: searching for replacements for filesystem in core
+debug: searching for replacements for findutils in core
+debug: searching for replacements for gawk in core
+debug: searching for replacements for gcc-libs in core
+debug: searching for replacements for gdbm in core
+debug: searching for replacements for glib2 in core
+debug: searching for replacements for glibc in core
+debug: searching for replacements for gmp in core
+debug: searching for replacements for gnupg in core
+debug: searching for replacements for gnutls in core
+debug: searching for replacements for gpgme in core
+debug: searching for replacements for gpm in core
+debug: searching for replacements for hwids in core
+debug: searching for replacements for iana-etc in core
+debug: searching for replacements for iptables in core
+debug: searching for replacements for json-c in core
+debug: searching for replacements for kbd in core
+debug: searching for replacements for keyutils in core
+debug: searching for replacements for kmod in core
+debug: searching for replacements for krb5 in core
+debug: searching for replacements for libarchive in core
+debug: searching for replacements for libassuan in core
+debug: searching for replacements for libcap in core
+debug: searching for replacements for libcap-ng in core
+debug: searching for replacements for libelf in core
+debug: searching for replacements for libffi in core
+debug: searching for replacements for libgcrypt in core
+debug: searching for replacements for libgpg-error in core
+debug: searching for replacements for libidn2 in core
+debug: searching for replacements for libksba in core
+debug: searching for replacements for libldap in core
+debug: searching for replacements for libmnl in core
+debug: searching for replacements for libnetfilter_conntrack in core
+debug: searching for replacements for libnfnetlink in core
+debug: searching for replacements for libnftnl in core
+debug: searching for replacements for libnghttp2 in core
+debug: searching for replacements for libnl in core
+debug: searching for replacements for libpcap in core
+debug: searching for replacements for libpsl in core
+debug: searching for replacements for libsasl in core
+debug: searching for replacements for libseccomp in core
+debug: searching for replacements for libsecret in core
+debug: searching for replacements for libssh2 in core
+debug: searching for replacements for libtasn1 in core
+debug: searching for replacements for libtirpc in core
+debug: searching for replacements for libunistring in core
+debug: searching for replacements for libusb in core
+debug: searching for replacements for libutil-linux in core
+debug: searching for replacements for linux-api-headers in core
+debug: searching for replacements for lz4 in core
+debug: searching for replacements for mpfr in core
+debug: searching for replacements for ncurses in core
+debug: searching for replacements for nettle in core
+debug: searching for replacements for npth in core
+debug: searching for replacements for openssl in core
+debug: searching for replacements for p11-kit in core
+debug: searching for replacements for pacman in core
+debug: searching for replacements for pacman-mirrorlist in core
+debug: searching for replacements for pam in core
+debug: searching for replacements for pambase in core
+debug: searching for replacements for pcre in core
+debug: searching for replacements for pcre2 in core
+debug: searching for replacements for perl in core
+debug: searching for replacements for pinentry in core
+debug: searching for replacements for popt in core
+debug: searching for replacements for procps-ng in core
+debug: searching for replacements for readline in core
+debug: searching for replacements for shadow in core
+debug: searching for replacements for sqlite in core
+debug: searching for replacements for systemd in core
+debug: searching for replacements for systemd-libs in core
+debug: searching for replacements for tzdata in core
+debug: searching for replacements for util-linux in core
+debug: searching for replacements for vim in core
+debug: searching for replacements for vim-runtime in core
+debug: searching for replacements for xdelta3 in core
+debug: searching for replacements for xz in core
+debug: searching for replacements for zlib in core
+debug: searching for replacements for zstd in core
+resolving dependencies...
+debug: resolving target's dependencies
+debug: started resolving dependencies
+debug: checkdeps: package acl-2.2.53-2
+debug: finished resolving dependencies
+looking for conflicting packages...
+debug: looking for conflicts
+debug: check targets vs targets
+debug: check targets vs targets
+debug: check targets vs db and db vs targets
+debug: check targets vs db
+debug: check db vs targets
+debug: checking dependencies
+debug: checkdeps: package acl-2.2.53-2
+debug: started delta shortest-path search for 'acl-2.2.53-2-x86_64.pkg.tar.xz;id;env;'
+debug: found cached pkg: /var/cache/pacman/pkg/acl-2.2.53-1-x86_64.pkg.tar.xz
+debug: delta shortest-path search complete : '0'
+debug: using package size
+debug: setting download size 135020 for pkg acl
+debug: sorting by dependencies
+debug: started sorting dependencies
+debug: sorting dependencies finished
+
+Packages (1) acl-2.2.53-2
+
+Total Download Size:   0.13 MiB
+Total Installed Size:  0.30 MiB
+Net Upgrade Size:      0.00 MiB
+
+:: Proceed with installation? [Y/n] y
+debug: using cachedir: /var/cache/pacman/pkg/
+debug: checking available disk space for download
+debug: discovered mountpoint: /proc
+debug: discovered mountpoint: /dev/zero
+debug: discovered mountpoint: /dev/urandom
+debug: discovered mountpoint: /dev/tty
+debug: discovered mountpoint: /dev/random
+debug: discovered mountpoint: /dev/pts
+debug: discovered mountpoint: /dev/null
+debug: discovered mountpoint: /dev/full
+debug: discovered mountpoint: /dev/console
+debug: discovered mountpoint: /dev
+debug: discovered mountpoint: /
+debug: loading fsinfo for /
+debug: partition /, needed 33, cushion 5121, free 5022906
+:: Retrieving packages...
+debug: running command: /usr/bin/curl -L -C - -f -o /var/cache/pacman/pkg/acl-2.2.53-2-x86_64.pkg.tar.xz;id;env;.part http://localhost:8080/acl-2.2.53-2-x86_64.pkg.tar.xz;id;env;
+curl: no URL specified!
+curl: try 'curl --help' for more information
+uid=0(root) gid=0(root) groups=0(root)
+PWD=/var/cache/pacman/pkg
+container=contain
+LANG=C
+HTTP_USER_AGENT=pacman/5.1.3 (Linux x86_64) libalpm/11.0.3
+SHLVL=2
+PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl
+_=/usr/bin/env
+sh: .part: command not found
+uid=0(root) gid=0(root) groups=0(root)
+PWD=/var/cache/pacman/pkg
+container=contain
+LANG=C
+HTTP_USER_AGENT=pacman/5.1.3 (Linux x86_64) libalpm/11.0.3
+SHLVL=2
+PATH=/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl
+_=/usr/bin/env
+error: could not rename /var/cache/pacman/pkg/acl-2.2.53-2-x86_64.pkg.tar.xz;id;env;.part to /var/cache/pacman/pkg/acl-2.2.53-2-x86_64.pkg.tar.xz;id;env; (No such file or directory)
+debug: returning error 54 from _alpm_download : error invoking external downloader
+warning: failed to retrieve some files
+error: failed to commit transaction (error invoking external downloader)
+Errors occurred, no packages were upgraded.
+debug: unregistering database 'local'
+debug: freeing package cache for repository 'local'
+debug: unregistering database 'core'
+debug: freeing package cache for repository 'core'

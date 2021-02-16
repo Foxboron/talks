@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reproducible builds, rebuilder and transparency logs</title>
+    <meta charset="utf-8">
+	<style>
+    </style>	
+    <link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Reproducible builds:
+# Break a log, good things come in trees
+### Morten Linderud
+---
+# "Trust, but verify" 
+### Russian Proverb 
+---
+## Investigates how transparency log overlays can provide additional security guarantees for rebuilders building Debian packages.
+
+
+<!-- Research Questions -->
+---
+layout: false
+# Research Questions 
+
+.right-column[
+### RQ1:
+Can a transparency log provide additional security guarantees, and if so, how?
+]
+---
+# Research Questions 
+
+.right-column[
+.gray[### RQ1:
+Can a transparency log provide additional security guarantees, and if so, how?]
+### RQ2:
+Are we able to implement this into the current rebuilder verification process?
+]
+---
+# Research Questions 
+
+.right-column[
+.gray[### RQ1:
+Can a transparency log provide additional security guarantees, and if so, how?]
+.gray[### RQ2:
+Are we able to implement this into the current rebuilder verification process?]
+### RQ3: 
+Can this be deployed in a real-world scenario?
+]
+
+
+
+---
+# Contributions
+
+.right-column[
+- Extend the visualizer component
+]
+---
+# Contributions
+
+.right-column[
+.gray[
+- Extend the visualizer component
+]
+
+- Combine transparency logs and rebuilders
+]
+---
+# Contributions
+
+.right-column[
+.gray[
+- Extend the visualizer component
+]
+
+.gray[
+- Combine transparency logs and rebuilders
+]
+
+- Contribute reproducible research
+]
+
+---
+# Contributions
+
+.right-column[
+.gray[
+- Extend the visualizer component
+]
+
+.gray[
+- Combine transparency logs and rebuilders
+]
+
+.gray[
+- Contribute reproducible research
+]
+
+- Little academic research in this area
+]
+
+---
+# Collaboration
+
+.right-column[
+- New York University, Secure Systems Lab
+
+    Santiago Torres-Arias & Lukas Puehringer
+]
+
+
+.footnote[
+https://in-toto.github.io/
+
+https://ssl.engineering.nyu.edu/
+]
+
+---
+# Collaboration
+
+.right-column[
+.gray[
+- New York University, Secure Systems Lab
+
+    Santiago Torres-Arias & Lukas Puehringer
+]
+
+- Debian & Reproducible Builds
+]
+
+.footnote[
+https://debian.org
+
+https://reproducible-builds.org
+]
+
+---
+template: inverse
+
+# Supply Chains & Reproducible Builds
+---
+
+name: supply-chains
+
+.left-column[
+## Supply Chains
+]
+
+.right-column[
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+]
+
+.right-column[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+### - Debian
+]
+
+.right-column[
+.gray[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+### Debian Supply Chain
+
+- Fetch and verify software release source
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+### - Debian
+]
+
+.right-column[
+.gray[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+### Debian Supply Chain
+.gray[
+    - Fetch and verify software release source
+]
+-  Upload source package and patches to buildserver
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+### - Debian
+]
+
+.right-column[
+.gray[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+### Debian Supply Chain
+.gray[
+- Fetch and verify software release source
+
+-  Upload source package and patches to buildserver
+]
+-  Built on a remote build server
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+### - Debian
+]
+
+.right-column[
+.gray[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+### Debian Supply Chain
+.gray[
+- Fetch and verify software release source
+
+-  Upload source package and patches to buildserver
+
+-  Built on a remote build server
+]
+
+-  Distributed through mirrors
+]
+
+---
+name: supply-chains
+
+.left-column[
+## Supply Chains
+### - SDL
+### - Debian
+]
+
+.right-column[
+.gray[
+- More encompassing then the Software Delivery Lifecycle (SDL)
+
+    - All the steps from writing the software until delivery!
+]
+
+### Debian Supply Chain
+.gray[
+- Fetch and verify software release source
+
+-  Upload source package and patches to buildserver
+
+-  Built on a remote build server
+
+-  Distributed through mirrors
+]
+
+- ```shell
+$ apt install python
+```
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+
+- Effort started by Debian in 2014
+
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+
+.gray[
+- Effort started by Debian in 2014
+]
+- Strip any undeterminism from the building process
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+.gray[
+- Effort started by Debian in 2014
+
+- Strip any undeterminism from the building process
+]
+
+- Build paths
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+.gray[
+- Effort started by Debian in 2014
+
+- Strip any undeterminism from the building process
+
+- Build paths
+]
+
+- `SOURCE_DATE_EPOCH`
+
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+#### [...] A set of software development practices that create an independently-verifiable path from source to binary code.
+.gray[
+- Effort started by Debian in 2014
+
+- Strip any undeterminism from the building process
+
+- Build paths
+
+- `SOURCE_DATE_EPOCH`
+]
+- Rebuilders can share results with users
+]
+
+---
+
+.left-column[
+ ## Reproducible Builds
+### - BUILDINFO
+]
+
+.right-column[
+Records the build envinoment so it can be recreated:
+```plain
+Format: 1.0
+Source: dh-make
+Binary: dh-make
+Architecture: all
+Version: 2.201802
+Checksums-Sha256:
+ 22c95094efbe79445336007dd[...] 42360 dh-make_2.201802_all.deb
+Build-Origin: Debian
+Build-Architecture: amd64
+Build-Kernel-Version: 4.9.0-8-amd64 #1 SMP Debian 4.9.110-3 (2018-10-08)
+Build-Date: Thu, 06 Dec 2018 00:04:23 +0000
+Build-Path: /build/dh-make-2.201802
+Installed-Build-Depends:
+ autoconf (= 2.69-11),
+ automake (= 1:1.16.1-4),
+ [...]
+ xz-utils (= 5.2.2-1.3),
+ zlib1g (= 1:1.2.11.dfsg-1)
+Environment:
+ DEB_BUILD_OPTIONS="buildinfo=+all reproducible=+all parallel=16"
+ LANG="C"
+ LC_ALL="POSIX"
+ SOURCE_DATE_EPOCH="1543231660"
+```
+]
+
+---
+layout: false
+# Architecture
+![](pics/arch.png)
+
+---
+template: inverse
+
+# Transparency Log
+---
+.left-column[
+## Transparency Logs
+]
+
+.right-column[
+
+- A usage of Merkle Trees
+]
+---
+.left-column[
+## Transparency Logs
+]
+
+.right-column[
+.gray[
+- A usage of Merkle Trees
+]
+- Widely used to log TLS certificates issuance
+
+]
+---
+.left-column[
+## Transparency Logs
+]
+
+.right-column[
+.gray[
+- A usage of Merkle Trees
+
+- Widely used to log TLS certificates issuance
+]
+- Is capable of proving if a log has been tampered with
+]
+
+---
+.left-column[
+## Transparency Logs
+]
+
+.right-column[
+.gray[
+- A usage of Merkle Trees
+
+- Widely used to log TLS certificates issuance
+
+- Is capable of proving if a log has been tampered with
+]
+- Audit proofs and Consistency proofs
+
+- Audit proof: Checks if the tree contains the leaf
+
+- Consistency proof: Ensures we are able to get from old root node to the new root node
+
+]
+---
+.left-column[
+## Transparency Logs
+]
+
+.right-column[
+.gray[
+- A usage of Merkle Trees
+
+- Widely used to log TLS certificates issuance
+
+- Is capable of proving if a log has been tampered with
+
+- Audit proofs and Consistency proofs
+
+- Audit proof: Checks if the tree contains the leaf
+
+- Consistency proof: Ensures we are able to get from old root node to the new root node
+]
+- Adapting the pymerkle library .red[1]
+
+]
+
+.footnote[
+.red[1)] https://github.com/FoteinosMerg/pymerkle/
+]
+---
+ .pics[![growth](pics/merkle/partial_tree.gif)]
+---
+ .pics[![growth](pics/merkle/tree.gif)]
+---
+ .pics[![growth](pics/merkle/audit_path.gif)]
+---
+.left-column[
+## Transparency Logs
+### Development
+]
+.right-column[
+- Four iterations + one for APT transport integration
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+]
+.right-column[
+.gray[
+- Four iterations + one for APT transport integration
+]
+- Node model backed in SQL
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+]
+.right-column[
+.gray[
+- Four iterations + one for APT transport integration
+
+- Node model backed in SQL
+]
+- Written in Python + Flask
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+]
+.right-column[
+.gray[
+- Four iterations + one for APT transport integration
+
+- Node model backed in SQL
+
+- Written in Python + Flask
+]
+- Compatibility with old visualizer component
+
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+]
+
+.right-column[
+```json
+$ curl 127.0.0.1:5000/api/log/tree/validate/id/2
+{"root": {
+    "id": 8,
+    "type": "level",
+    "hash": "f9c955f75e...",
+    "right": "ffcd54e492...",
+    "left": "b9464656e8..."},
+  "path": [
+    ["RIGHT", {
+        "id": 2,
+        "type": "data",
+        "hash": "04f757137e...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-1", "name": "Name-1"}}],
+    ["LEFT", {
+        "id": 1,
+        "type": "data",
+        "hash": "6375bda107...",
+        "signature": "8acfc7f730...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-0", "name": "Name-0"}}],
+    ["RIGHT", {
+        "id": 7,
+        "type": "level",
+        "hash": "ffcd54e492...",
+        "right": "74a7004f39...",
+        "left": "2ba5b40dbe...",
+        "parent": "f9c955f75e..."}]],
+  "validation": true}
+```
+
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+]
+
+.right-column[
+```json
+$ curl 127.0.0.1:5000/api/log/tree/consistency/2
+{"root": {
+    "id": 8,
+    "type": "level",
+    "hash": "f9c955f75e...",
+    "right": "ffcd54e492...",
+    "left": "b9464656e8..."},
+  "leaf nodes": 4,
+  "inclusion": true,
+  "consistency": true,
+  "path": [
+    ["RIGHT", {
+        "id": 7,
+        "type": "level",
+        "hash": "ffcd54e492...",
+        "right": "74a7004f39...",
+        "left": "2ba5b40dbe...",
+        "parent": "f9c955f75e..."}],
+    ["LEFT", {
+        "id": 3,
+        "type": "level",
+        "hash": "b9464656e8...",
+        "right": "04f757137e...",
+        "left": "6375bda107...",
+        "parent": "f9c955f75e..." }]]}
+```
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+### Overlays
+]
+.right-column[
+- Record events or interactions as opposed to data 
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+### Overlays
+]
+.right-column[
+.gray[
+- Record events or interactions as opposed to data 
+]
+- Includes two: inclusion and revocation
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+### Overlays
+]
+.right-column[
+.gray[
+- Record events or interactions as opposed to data 
+
+- Includes two: inclusion and revocation
+]
+- Used by the APT transport
+]
+---
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+### Overlays
+]
+
+.right-column[
+Inclusion denotes a rebuilt packages.
+
+Revoke denotes a built package which we have revoked
+
+```
+inclusion = {"type": "inclusion",
+             "package": pkg_name,
+             "version": version,
+             "linkmetadata": metadata.read().decode("utf-8"),
+             "buildinfo": buildinfo.read().decode("utf-8")}
+
+revoke = {"type": "revoke",
+          "package": pkg_name,
+          "version": version,
+          "hash": hash,
+          "reason": reason}
+```
+]
+---
+
+.left-column[
+## Transparency Logs
+### Development
+### Audit proof
+### Consistency proof
+### Overlays
+### APT intergration
+]
+
+.right-column[
+Man-in-the-middles a package installation to verify the checksum and link metadata.
+```lisp
+APT
+ \+                   intoto
+ |                     +                    http
+ |                     |                     +
+ |         ...         |  100 Capabilities   |
+ | <-----------------+ | <-----------------+ |
+ |   601 Configuration |         ...         |
+ | +-----------------> | +-----------------> |
+ |   600 URI Acquire   |         ...         |
+ | +-----------------> | +-----------------> |
+ |         ...         |     200 URI Start   |
+ | <-----------------+ | <-----------------+ |
+ |                     |                  Download package
+ |                     |                  from archive
+ |                     |    201 URI Done     |
+ |                     + <-----------------+ |
+ |             Download in-toto links        |
+ |             and verify package            |
+ |    201 URI Done     |                     |
+ \+ <-----------------+ +                     +
+```
+
+]
+.footnote[https://github.com/in-toto/apt-transport-in-toto]
+---
+template: inverse
+# Results
+---
+.left-column[
+## Results
+### - Response Time
+]
+.right-column[
+ <!-- .pics[![growth](pics/response_time.png)] -->
+ ![growth](pics/response_time.png)
+]
+---
+.left-column[
+## Results
+### - Response Time
+### - Graph Growth
+]
+.right-column[
+ .pics[![growth](pics/nodes.png)]
+]
+
+---
+.left-column[
+## Results
+### - Response Time
+### - Graph Growth
+### - Research Questions
+]
+
+.right-column[
+- RQ1: Can a transparency log provide additional security guarantees, and if so, how?
+]
+
+---
+.left-column[
+## Results
+### - Response Time
+### - Graph Growth
+### - Research Questions
+]
+
+.right-column[
+.gray[
+- RQ1: Can a transparency log provide additional security guarantees, and if so, how?
+]
+
+- RQ2: Are we able to implement this into the current rebuilder verification process?
+]
+
+---
+.left-column[
+## Results
+### - Response Time
+### - Graph Growth
+### - Research Questions
+]
+
+.right-column[
+.gray[
+- RQ1: Can a transparency log provide additional security guarantees, and if so, how?
+
+- RQ2: Are we able to implement this into the current rebuilder verification process?
+]
+
+- RQ3: Can this be deployed in a real-world scenario?
+
+]
+
+---
+template: inverse
+
+# Conclusion
+
+---
+## Conclusion
+
+.right-column[
+
+- Should have spent more time on the programming
+
+]
+
+---
+## Conclusion
+
+.right-column[
+
+.gray[
+- Should have spent more time on the programming
+]
+
+- Node duplication should have been solved
+]
+
+---
+## Conclusion
+
+.right-column[
+.gray[
+- Should have spent more time on the programming
+
+- Node duplication should have been solved
+]
+
+- Reused backend code from Googles Trillian .red[1]
+]
+
+.footnote[
+.red[1)] https://github.com/google/trillian
+]
+
+---
+## Conclusion
+
+.right-column[
+.gray[
+- Should have spent more time on the programming
+
+- Node duplication should have been solved
+
+- Reused backend code from Googles Trillian .red[1]
+]
+- Technical evaluation could have been broader and better researched
+
+]
+
+.footnote[
+.red[1)] https://github.com/google/trillian
+]
+
+---
+template: inverse
+
+# The End
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark',
+          highlightLines: true,
+          countIncrementalSlides: false
+        }) ;
+    </script>
+  </body>
+</html>

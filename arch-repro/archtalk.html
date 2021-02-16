@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A look inside Arch Linux</title>
+    <meta charset="utf-8">
+		<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+# Reproducible Builds & Arch Linux
+
+
+#### Morten Linderud [&lt;foxboron@archlinux.org&gt;](mailto:foxboron@archlinux.org)
+
+---
+
+# Overview
+
+* whoami
+* Why reproducible builds
+* Rebuilding packages
+
+---
+
+# $ whoami
+
+* Joined Arch Linux in 2017
+* Trusted User
+* Involved in:
+    * Security Team 
+    * Reproducible Builds
+* Work as a developer at a infosec company
+
+---
+
+# Why Reproducible Builds?
+
+* Supply chain attacks
+    * Signing keys
+    * Build servers
+    * Personal equipment
+* Compare against the pristine source
+* Cross-distribution project
+
+---
+# Rebuilding packages
+
+* Verify the work done by the packagers!
+* Can be any archive:
+    * `/var/cache/pacman/pkg`
+    * https://archive.archlinux.org
+
+```bash
+$ curl -Os file://archive/archlinux-keyring-20190805-1-any.pkg.tar.xz
+$ sha256sum archlinux-keyring-20190805-1-any.pkg.tar.xz
+02b9b16a5450482d00906e472bc1dd80dca08d84ccabe80fc0923b0568ae7bb6
+```
+---
+.left-side[
+# .BUILDINFO
+]
+
+.right-side[
+```bash
+$ bsdtar -xOf archlinux-keyring-*.pkg.tar.xz .BUILDINFO 
+format = 1
+pkgname = archlinux-keyring
+pkgbase = archlinux-keyring
+pkgver = 20190123-2
+pkgarch = any
+pkgbuild_sha256sum = ba262225f9...
+packager = Florian Pritz <bluewind@xinu.at>
+builddate = 1549751399
+builddir = /build
+buildenv = !distcc
+...
+options = strip
+...
+installed = acl-2.2.53-1-x86_64
+installed = archlinux-keyring-20190123-1-any
+installed = argon2-20171227-3-x86_64
+installed = attr-2.4.48-1-x86_64
+installed = audit-2.8.4-3-x86_64
+installed = autoconf-2.69-5-any
+...
+```
+]
+
+---
+# archlinux-repro
+* https://github.com/archlinux/archlinux-repro/
+* Cross-distribution
+* `.BUILDINFO` or `.pkg.tar.*`
+
+---
+```
+$ repro archlinux-keyring-20190805-1-any.pkg.tar.xz
+:: Synchronizing package databases...
+[...]
+:: Starting full system upgrade...
+ there is nothing to do
+==> Starting build...
+  -> Create snapshot for build...
+[...]
+  -> Preparing packages
+Hit cache for acl-2.2.53-1-x86_64.pkg.tar.xz
+Hit cache for zlib-1:1.2.11-3-x86_64.pkg.tar.xz
+Hit cache for zstd-1.4.1-1-x86_64.pkg.tar.xz
+  -> Finished preparing packages
+==> Installing packages
+[...]
+==> Making package: archlinux-keyring 20190805-1 (Tue Aug 20 17:07:24 2019)
+==> Checking runtime dependencies...
+==> Checking buildtime dependencies...
+==> Retrieving sources...
+[...]
+==> Finished making: archlinux-keyring 20190805-1 (Tue Aug 20 17:07:39 2019)
+==> Cleaning up...
+  -> Delete snapshot for build...
+==> Comparing hashes...
+==> ERROR: Package is not reproducible
+```
+
+---
+# Current Limitations
+
+* Tooling
+* Counting bytes is hard.
+* tar is undeterministic
+---
+
+# Questions?
+
+:wq
+    </textarea>
+    <script src="remark-latest.min.js">
+    </script>
+    <script>
+      const slideshow = remark.create();
+    </script>
+  </body>
+</html>

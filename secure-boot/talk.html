@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reproducible builds, rebuilder and transparency logs</title>
+    <meta charset="utf-8">
+    <style>
+    </style>	
+<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Improving the Secure Boot Landscape
+## sbctl & go-uefi
+### FOSDEM 2021 - Morten Linderud
+
+---
+layout: false
+.left-column[
+]
+
+.right-column[
+# $ whoami
+
+* Morten Linderud \ Foxboron
+
+* Security Engineer at Defendable
+
+* F/OSS developer since ~2013
+
+* Arch Linux contributor since 2016
+
+  * Security Team
+
+  * Reproducible Builds
+
+  * Packaging (go/podman/lxd/docker)
+
+* Supply-chain security!
+]
+---
+template: inverse
+
+# Secure Boot is terrible!
+---
+template: inverse
+
+## ~~Secure Boot is terrible!~~
+# Secure Boot is terrible for the _wrong_ reasons!
+
+---
+
+.left-column[
+### Why?
+]
+
+.right-column[
+* "I want an encrypted disk"
+
+  * `cryptsetup luksFormat /dev/sda`
+
+  * `cryptsetup open /dev/sda luks`
+
+  * Fairly easy!
+]
+---
+
+.left-column[
+### Why?
+]
+
+.right-column[
+.gray[
+* "I want an encrypted disk"
+
+  * `cryptsetup luksFormat /dev/sda`
+
+  * `cryptsetup open /dev/sda luks`
+
+  * Fairly easy!
+]
+* "I want to enroll secure boot keys"
+  
+  * [Sakaki's EFI Install Guide/Configuring Secure Boot](https://wiki.gentoo.org/wiki/User:Sakaki/Sakaki%27s_EFI_Install_Guide/Configuring_Secure_Boot_under_OpenRC)
+
+  * [Rod Smiths - Controlling Secure Boot](https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html)
+
+  * [Arch Wiki - Secure Boot](https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface/Secure_Boot#Using_your_own_keys)
+]
+---
+
+.left-column[
+### Why?
+]
+
+.right-column[
+.gray[
+* "I want an encrypted disk"
+
+  * `cryptsetup luksFormat /dev/sda`
+
+  * `cryptsetup open /dev/sda luks`
+
+  * Fairly easy!
+
+* "I want to enroll secure boot keys"
+  
+  * [Sakaki's EFI Install Guide/Configuring Secure Boot](https://wiki.gentoo.org/wiki/User:Sakaki/Sakaki%27s_EFI_Install_Guide/Configuring_Secure_Boot_under_OpenRC)
+
+  * [Rod Smiths - Controlling Secure Boot](https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html)
+
+  * [Arch Wiki - Secure Boot](https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface/Secure_Boot#Using_your_own_keys)
+]
+* Long pages
+
+* Implementation details
+
+* Easy to make mistakes
+]
+
+---
+
+
+.left-column[
+### Why?
+### Enroll
+]
+
+.right-column[
+## Create Keys
+ * Platform Key
+ * Key Exchange Key
+ * Database Key
+
+```
+$ openssl req -new -x509 -newkey rsa:2048 -subj "/CN=PK/" \
+  -keyout PK.key -out PK.crt -days 3650 -nodes -sha256
+$ openssl x509 -outform DER -in PK.crt -out PK.cer
+
+$ openssl req -new -x509 -newkey rsa:2048 -subj "/CN=KEK/" \
+  -keyout KEK.key -out KEK.crt -days 3650 -nodes -sha256
+$ openssl x509 -outform DER -in KEK.crt -out KEK.cer
+
+$ openssl req -new -x509 -newkey rsa:2048 -subj "/CN=db/" \
+  -keyout DB.key -out DB.crt -days 3650 -nodes -sha256
+$ openssl x509 -outform DER -in db.crt -out db.cer
+```
+
+Note: People blindly copypaste this!
+]
+
+---
+
+
+.left-column[
+### Why?
+### Enroll
+]
+
+.right-column[
+## Create GUID
+```
+$ uuidgen --random > GUID.txt
+```
+
+### From PEM to EFI_SIGNATURE_LIST (esl)
+``` 
+$ cert-to-efi-sig-list -g "$(< GUID.txt)" PK.crt PK.esl
+$ cert-to-efi-sig-list -g "$(< GUID.txt)" KEK.crt KEK.esl
+$ cert-to-efi-sig-list -g "$(< GUID.txt)" KEK.crt KEK.esl
+```
+
+### Sign ESL
+``` 
+$ sign-efi-sig-list -g "$(< GUID.txt)" -k PK.key -c PK.crt \
+  PK PK.esl PK.auth
+$ sign-efi-sig-list -g "$(< GUID.txt)" -k PK.key -c PK.crt \
+  KEK KEK.esl KEK.auth
+$ sign-efi-sig-list -g "$(< GUID.txt)" -k KEK.key -c KEK.crt \ 
+  db db.esl db.auth
+```
+]
+---
+
+
+.left-column[
+### Why?
+### Enroll
+]
+
+.right-column[
+
+### Enroll keys!
+``` 
+$ efi-updatevar -f db.auth db
+$ efi-updatevar -f KEK.auth KEK
+$ efi-updatevar -f PK.auth PK
+```
+
+### Or use Keytool.efi
+```sh
+$ cp -v /usr/share/efitools/efi/KeyTool.efi \
+        /boot/efi/EFI/Boot/
+$ cp -v *.{auth,cer,crt,esl} /boot/efi/
+```
+]
+---
+
+.left-column[
+### Why?
+### Enroll
+### Sign
+]
+
+.right-column[
+### Lets sign our kernel!
+
+* Doh, used `efi-tools`... install `sbsigntools`!
+  * ┐(ツ)┌
+
+⠀
+```
+$ sbsign --key DB.key --cert DB.crt \
+  --output /boot/vmlinuz.signed /boot/vmlinuz
+```
+
+Reboot and hopefully it works!
+]
+
+---
+template: inverse
+
+## That was 17 commands and two packages for secure boot!
+
+---
+
+.left-column[
+### Why?
+### Enroll
+### What?
+]
+
+.right-column[
+## Tooling
+  * `sbsigntools`
+    * Implements most of `efi-tools`
+    * Provides signing (yay)
+      * Implements a PE/COFF library
+    * Undocumented key enrollment `sbkeysync`
+
+  * efi-tools provides no signing!
+]
+---
+
+.left-column[
+### Why?
+### Enroll
+### What?
+]
+
+.right-column[
+## Tooling
+.gray[
+  * `sbsigntools`
+    * Implements most of `efi-tools`
+    * Provides signing (yay)
+      * Implements a PE/COFF library
+    * Undocumented key enrollment `sbkeysync`
+
+* efi-tools provides no signing!
+]
+
+* pesign
+  * Maintained by Red Hat
+  * EFI Signing
+    * Implements yet another PE/COFF library _#CThings_
+]
+---
+
+.left-column[
+### Why?
+### Enroll
+### What?
+]
+
+.right-column[
+## Tooling
+.gray[
+  * `sbsigntools`
+    * Implements most of `efi-tools`
+    * Provides signing (yay)
+      * Implements a PE/COFF library
+    * Undocumented key enrollment `sbkeysync`
+
+* efi-tools provides no signing!
+
+* pesign
+  * Maintained by Red Hat
+  * EFI Signing
+    * Implements yet another PE/COFF library _#CThings_
+]
+* `dbxtool` replaced by `fwupd-dbxtool`
+]
+
+---
+template: inverse
+
+## We can do better!
+
+---
+template: inverse
+
+## Demo 💀
+
+???
+
+bash qemu.sh
+
+sbctl status
+sbctl create-keys
+sbctl enroll-keys
+
+sbctl sign -s -o /mnt/Signed.efi /mnt/Kernel.efi
+
+sbctl list-files
+
+REMOVE THE KERNEL LINE
+
+HIT ESC
+
+2nd menu -> UEFI Shell
+
+cls
+
+fs0:
+
+dir
+
+Kernel.efi
+
+Signed.efi root=/dev/sda
+
+---
+
+.left-column[
+## Secure Boot Control
+### Features
+]
+
+.right-column[
+## sbctl
+
+* Originally `efi-roller`
+  * 500 lines of bash
+]
+---
+
+.left-column[
+## Secure Boot Control
+### Features
+]
+
+.right-column[
+## sbctl
+.gray[
+* Originally `efi-roller`
+  * 500 lines of bash
+]
+* Manages signing keys
+
+* Key enrollment
+
+* Keeps track of what to sign
+
+* Supports efistub generation
+]
+---
+
+.left-column[
+## Secure Boot Control
+### Features
+]
+
+.right-column[
+## sbctl
+.gray[
+* Originally `efi-roller`
+  * 500 lines of bash
+
+* Manages signing keys
+
+* Key enrollment
+
+* Keeps track of what to sign
+
+* Supports efistub generation
+]
+
+* Missing features:
+  * Key rotation
+  * Configuration File
+  * Hardware tokens
+]
+???
+
+Mention 
+
+Érico Nogueira Rolim
+
+ericonr
+---
+
+.left-column[
+## Secure Boot Control
+### Features
+### Problem!
+]
+
+.right-column[
+
+
+⠀
+
+
+```
+$ grep "exec.Command" keys.go 
+	out, err := exec.Command("/usr/bin/sbsiglist", strings.Sp
+	out, err := exec.Command("/usr/bin/sbvarsign", strings.Sp
+	cmd := exec.Command("sbkeysync", strings.Split(args, " ")
+	cmd := exec.Command("sbverify", strings.Split(args, " ").
+	_, err := exec.Command("sbsign", strings.Split(args, " ")
+```
+
+* Still using `sbsigntools` 😞
+
+* But we are using a system language!
+]
+
+---
+template: inverse
+
+# go-uefi
+
+---
+
+.left-column[
+## go-uefi
+### Library
+]
+
+.right-column[
+⠀
+* Implements structs for Secure Boot (mostly)
+  * Want to get everything in the UEFI spec parseable
+
+* Implements Microsoft Authenticode
+  * Checksumming
+  * Signing
+
+* Implements a subset of PKCS7
+]
+
+---
+
+.left-column[
+## go-uefi
+### Library
+]
+
+.right-column[
+## Sign PE/COFF executable
+```go
+func main() {
+	peFile, _ := ioutil.ReadFile(args[2])
+
+	ctx := pecoff.PECOFFChecksum(peFile)
+	ctx.Cert = util.ReadCert(args[0])
+	ctx.Key = util.ReadKey(args[1])
+
+	b := pecoff.SignPECOFF(ctx)
+	if err = ioutil.WriteFile(args[3], b, 0644); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+]
+
+---
+
+.left-column[
+## go-uefi
+### Library
+]
+
+.right-column[
+## Create EFI_VARIABLE_AUTHENTICATION_2
+```go
+func main() {
+	guid := util.StringToGUID("371e0fd7-013d-4f5e-834d-96ff1e387e6a")
+
+	b, _ := ioutil.ReadFile(x509CertFile)
+	c := signature.NewSignatureList(b, *guid,
+                                    signature.CERT_X509)
+
+	buf := new(bytes.Buffer)
+	signature.WriteSignatureList(buf, *c)
+
+	buf := efi.SignEFIVariable(
+            util.ReadKey(args[0]),
+            util.ReadCert(args[1]), "PK", buf)
+
+	ioutil.WriteFile(args[1], buf, 0644)
+}
+```
+]
+
+---
+
+.left-column[
+## go-uefi
+### Library
+### State
+]
+
+.right-column[
+## A work in progress
+
+* Missing a top-level API
+
+* Not stable
+  * Problems with PKCS7
+  * Integration tests?
+      * https://github.com/anatol/vmtest
+      * tianocore
+
+* Linux only
+
+* But it works!
+]
+---
+.left-column[
+]
+
+.right-column[
+## Thanks!
+
+Repositories:
+  * https://github.com/Foxboron/sbctl
+  * https://github.com/Foxboron/go-uefi
+  * https://secureboot.dev/
+
+Email: morten@linderud.pw / foxboron@archlinux.org
+
+Foxboron on Freenode.
+]
+---
+template: inverse
+
+# Q&A?
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark',
+          highlightLines: true,
+          countIncrementalSlides: false,
+          slideNumberFormat: ''
+        }) ;
+    </script>
+  </body>
+</html>

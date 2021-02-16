@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Reproducible builds, rebuilder and transparency logs</title>
+    <meta charset="utf-8">
+	<style>
+    </style>	
+    <link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+name: inverse
+layout: true
+class: center, middle, inverse
+---
+# Transparency logs
+### Morten Linderud - BDO Cybersecurity
+
+---
+layout: false
+# $ ~ whoami
+
+* Master in Information Science from UiB
+
+* Security engineer @ BDO Cybersecurity
+
+* Free and Open Source work
+     * Arch Linux
+
+     * Reproducible Builds
+
+     * Linux Distribution Security
+
+* Interested in supply chain security
+
+???
+
+Wrote masters with New York University Secure Systems Lab.
+
+Transparency logs for APT.
+
+---
+template: inverse
+# How do we ensure a release is intended?
+
+???
+
+How do we know someone has no published a malicious package?
+
+How do we know if a package release is 
+
+---
+.left-column[
+## Transparency Logs
+### Why?
+]
+
+.right-column[
+Vetles view of packages:
+```
+packageA-1.0.pkg
+packageB-1.0.pkg
+packageC-1.0.pkg
+```
+
+Johans view of packages:
+```
+packageA-1.0.pkg
+packageB-1.0.pkg
+packageC-2.0.pkg
+```
+
+* Outdated mirror?
+
+* Malicious attack?
+
+]
+
+
+???
+
+Imagen if signing keys are compromised! Someone could create fake and malicious packages which are completely valid
+packages.
+
+Signing keys from fedora has been compromised in 2008. Compromised Openssh package.
+https://access.redhat.com/errata/RHSA-2008:0855
+
+Debian has signed repository databases.
+
+Arch Linux has no signed repository databases and sign each package with personal keys.
+
+Publishing release logs? Can be changed, no signatures.
+
+---
+.left-column[
+## Transparency Logs
+### Why?
+### How?
+]
+
+.right-column[
+- Transparency logs!
+    
+    - Binary tree
+
+    - Based on merkle trees
+
+    - RFC 6962: Certificate Transparency
+
+- Root nodes are always signed
+
+- Leafs are hashed data
+
+- Interior nodes are hashes of the left and right hash
+]
+
+???
+
+Popularized by certificate transparency.
+
+All browser use CT.
+
+Gives the browser "Signed Certificate Timestamps", SCT.
+
+Ensures validity. 
+
+Needs to be commited to the tree.
+
+Ensures that all certs needs to enter the log.
+
+Enables Certificate Authorities to monitor the log for compromised signing keys.
+
+Transparency logs as a general datastructure! trillian from google
+
+Used in multiple projects to provide custom transparency logs
+
+---
+.left-column[
+## Transparency Logs
+### Why?
+### How?
+]
+.right-column[
+
+## Creating the node
+```python
+>>> import hashlib
+>>> hashlib.sha256(b"Somedata").hexdigest()
+'7d877045f48746bf47d52bca95e2e7325ee917323b51200a3d57bd87...'
+>>> hashlib.sha256(b"Someother").hexdigest()
+'90f811d519edeb2df81e0cd0180cde681a39e38b29bc2579f5f956b0...'
+>>> hashlib.sha256(b"7d877045..."+b"90f811d5...").hexdigest()
+'12c019f2d4b5a100e297ba053b352203c465202ece61ebb968380831...'
+```
+]
+
+???
+
+Secure hashing function! Ensures no collisions.
+
+---
+# Creating a tree
+.center[![test](figures/figures/1node.png)]
+---
+# Creating a tree
+.center[![test](figures/figures/2node.png)]
+---
+# Creating a tree
+.center[![test](figures/figures/3node.png)]
+---
+# Creating a tree - Complete tree!
+.center[![test](figures/figures/4node.png)]
+---
+.left-column[
+## Tree Proofs
+]
+
+.right-column[
+
+- Audit proof
+
+    - Is the hash part of the tree? 
+
+- Consistency proof
+
+    - Is the old tree a subset of the current tree?
+
+### Requires:
+- Some signed tree root
+
+- Number of leafs
+]
+
+
+---
+# Audit proof
+.center[![test](figures/figures/8node.png)]
+---
+# Audit proof
+.center[![test](figures/audit/start.png)]
+---
+# Audit proof
+.center[![test](figures/audit/step1.png)]
+---
+# Audit proof
+.center[![test](figures/audit/step2.png)]
+---
+# Audit proof
+.center[![test](figures/audit/step3.png)]
+---
+.left-column[
+# Proof response
+]
+.right-column[
+```json
+$ curl 127.0.0.1:5000/api/log/tree/validate/id/2
+{"root": {
+    "id": 8,
+    "type": "level",
+    "hash": "f9c955f75e...",
+    "right": "ffcd54e492...",
+    "left": "b9464656e8..."},
+  "path": [
+    ["RIGHT", {
+        "id": 2,
+        "type": "data",
+        "hash": "04f757137e...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-1", "name": "Name-1"}}],
+    ["LEFT", {
+        "id": 1,
+        "type": "data",
+        "hash": "6375bda107...",
+        "signature": "8acfc7f730...",
+        "parent": "b9464656e8...",
+        "data": {"data": "Datablock-0", "name": "Name-0"}}],
+    ["RIGHT", {
+        "id": 7,
+        "type": "level",
+        "hash": "ffcd54e492...",
+        "right": "74a7004f39...",
+        "left": "2ba5b40dbe...",
+        "parent": "f9c955f75e..."}]],
+  "validation": true}
+```
+]
+---
+# Consistency proof
+.center[.size[![test](figures/consistency/tree.png)]]
+---
+# Consistency proof
+.center[.size[![test](figures/consistency/node1.png)]]
+---
+# Consistency proof
+.center[.size[![test](figures/consistency/node2.png)]]
+---
+# Consistency proof
+.center[.size[![test](figures/consistency/node3.png)]]
+---
+.left-column[
+## Tree proofs
+]
+.right-column[
+### Additional components
+
+- Monitors
+    - Verify the authenticity of the items
+
+- Auditors
+
+    - Verifies the logs behave correctly
+
+Enables us to verify the log operates correctly.
+
+Trust and transparency!
+]
+---
+template: inverse
+# Questions?
+
+    </textarea>
+    <script src="remark-latest.min.js"></script>
+    <script>
+      var hljs = remark.highlighter.engine;
+    </script>
+    <script>
+      var slideshow = remark.create({
+          highlightStyle: 'monokai',
+          highlightLanguage: 'remark',
+          highlightLines: true,
+          countIncrementalSlides: false
+        }) ;
+    </script>
+  </body>
+</html>

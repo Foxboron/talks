@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Arch Linux RemarkJS Theme</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+count: false
+
+# The State of Reproducible Builds 
+
+## Morten Linderud
+### .gray[Arch Conf 2020]
+
+---
+
+# $ whoami
+
+* Morten Linderud - Foxboron
+* Work as a Security Engineer for `${dayjob}`
+* Joined the team in 2017
+* Trusted User
+* Package Maintainer:
+  * go, i3-gaps, container ecosystem
+* Security Team
+---
+
+# $ whoami
+
+* Morten Linderud - Foxboron
+* Work as a Security Engineer for `${dayjob}`
+* Joined the team in 2017
+* Trusted User
+* Package Maintainer:
+  * go, i3-gaps, container ecosystem
+* Security Team
+* 🍺🥂Reproducible Builds🎆🕺
+---
+# ToC
+
+* Supply-chain introduction
+* Package building 
+* Reproducible builds
+* Current tooling
+* Rebuilding with rebuilders
+* Contributing
+
+
+Spoiler: Live demos! 💀
+
+<!-- --- -->
+<!-- # Software Supply-Chains -->
+
+<!-- * How to deliver software -->
+<!--   * Point A: Source Code -->
+<!--   * Point B: Users -->
+<!-- * Reality: Point A to Point Z -->
+
+---
+# The Arch supply-chain
+
+* Point A to Point B
+* Upstream trusted code
+* Building
+* Signing
+
+---
+# The Arch supply-chain
+
+* Uploaded to gemini
+  * gemini ⟶ Tier 1 ⟶ Tier 2
+* `pacman -S ${pkgname}`
+
+---
+# Package Building
+
+* Clean chroots
+  * `devtools`
+  * `extra-x86_64-build`
+* Builds are isolated
+* Nothing should influence the build!
+* or...
+
+---
+⠀
+
+⠀
+⠀ 
+# Demo 💀
+
+???
+
+```
+mkdir pkg2
+
+PKGDEST=$PWD/pkg2 extra-x86_64-build 
+
+sha256sum pkg*/pacman-5*
+
+diffoscope pkg1/pacman-5* pkg2/pacman-5*
+```
+
+---
+# Reproducible Builds
+
+⠀
+
+
+
+*"Reproducible builds are a set of software development practices that create an independently-verifiable path from
+source to binary code."*
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+* Started by Debian in 2014!
+* Currently headed by Holger Levsen et al.
+* Contributors from many distros and projects:
+  * Debian
+  * OpenSUSE
+  * NixOS
+  * Guix
+  * OpenWRT
+  * and many more...
+]
+
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+* Monthly reports
+* Who?
+  * Anthraxx
+  * Jelle
+  * kpcyrd
+  * Allan
+  * And manymany more!
+]
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+.gray[
+* Monthly reports
+* Who?
+  * Anthraxx
+  * Jelle
+  * kpcyrd
+  * Allan
+  * And manymany more!
+]
+* Summits
+  * Marrakesh 2019
+  * Paris 2018
+  * Berlin 2016 & 2017
+  * Athens 2015
+]
+
+.pics2[![ci](img/2019.gif)]
+---
+.left-column[
+## Reproducible Builds
+]
+
+.right-column[
+* Trust, but verify! 
+* Is this what the packager claims it is?
+* Ensure nothing is added in the supply-chain
+* Defines:
+  * `SOURCE_DATE_EPOCH`
+  * `BUILDINFO`
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+]
+
+.right-column[
+```
+~# bsdtar -xOf ./pkg2.pkg.tar.zst .BUILDINFO
+format = 1
+pkgname = pacman
+pkgver = 5.2.2-1
+pkgarch = x86_64
+pkgbuild_sha256sum = 934d713bc81b4d1135268a67ec5435ccc...
+packager = Morten Linderud <foxboron@archlinux.org>
+builddate = 1601751383
+builddir = /build
+buildenv = !distcc
+[...snip...]
+options = strip
+[...snip...]
+installed = acl-2.2.53-3-x86_64
+installed = archlinux-keyring-20200820-1-any
+[...snip...]
+installed = zstd-1.4.5-1-x86_64
+
+# man BUILDINFO
+```
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+]
+
+.right-column[
+* Read `installed`
+* Recreate the environment
+  * `builddate`
+  * `builddir`
+  * `installed`
+  * compression (xz vs zstd)
+  * `packager`
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+]
+
+.right-column[
+.gray[
+* Read `installed`
+* Recreate the environment
+  * `builddate`
+  * `builddir`
+  * `installed`
+  * compression (xz vs zstd)
+  * `packager`
+]
+* `archlinux-repro`
+* `devtools`
+  * With `makerepropkg`
+]
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+]
+
+.right-column[
+.gray[
+* Read `installed`
+* Recreate the environment
+  * `builddate`
+  * `builddir`
+  * `installed`
+  * compression (xz vs zstd)
+  * `packager`
+* `archlinux-repro`
+* `devtools`
+  * With `makerepropkg`
+]
+
+# Demo 💀
+]
+
+???
+
+```
+/usr/bin/repro -- pkg1/pacman-5.2.2-1-x86_64.pkg.tar.zst
+sha256sum build/pacman-5 pkg1/pacman-5
+```
+
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+
+* https://tests.reproducible-builds.org/archlinux/archlinux.html
+  * Hosted by reproducible-builds.org
+  * Called "CI"
+  * Doesn't use distributed packages
+      * Find upstream bugs
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+.gray[
+* https://tests.reproducible-builds.org/archlinux/archlinux.html
+  * Hosted by reproducible-builds.org
+  * Called "CI"
+  * Doesn't use distributed packages
+      * Find upstream bugs
+]
+* https://reproducible.archlinux.org/
+  * Using `rebuilderd` from kpcyrd
+  * Rebuilds using `repro`
+  * Checks distributed packages(!)
+  * 3 nodes
+      * One node runs on Debian 🙃
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+* CI
+  * core: 83.4%
+  * extra: 85.2%
+  * community: 77.2%
+
+  .pics[![ci](img/ci-repro.jpg)]
+]
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+.gray[
+* CI
+  * core: 83.4%
+  * extra: 85.2%
+  * community: 77.2%
+]
+* Rebuilder
+  * core: 94.4%
+  * extra: 90.0%
+  * community: 78.6%
+
+]
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+.gray[
+* CI
+  * core: 83.4%
+  * extra: 85.2%
+  * community: 77.2%
+]
+* Rebuilder
+  * core: 94.4%
+  * extra: 90.0%
+  * community: 78.6%
+
+# Demo 💀
+]
+
+???
+
+`archlinux-keyring`
+
+---
+
+.left-column[
+## Reproducible Builds
+### `.BUILDINFO`
+### Tooling
+### Reproducion 
+]
+
+.right-column[
+Unreproducible `[core]` packages
+
+* dnssec-anchors
+* filesystem
+* gcc-ada
+* linux{,-docs,-header}
+* linux-lts{,-docs,-header}
+* nss
+* openssl
+* pambase
+* perl
+]
+
+---
+.left-column[
+## Current Issues
+]
+
+.right-column[
+* Experimental tooling(!!!)
+]
+
+---
+.left-column[
+## Current Issues
+]
+
+.right-column[
+.gray[
+* Experimental tooling(!!!)
+]
+* Private keys generation
+  * `linux` 🙄
+]
+
+---
+.left-column[
+## Current Issues
+]
+
+.right-column[
+.gray[
+* Experimental tooling(!!!)
+* Private keys generation
+  * `linux` 🙄
+]
+* Embedding the same `$PATH` multiple times
+  * `haskell-*` 🤦
+  * `PATH='/usr/bin/site_perl:[...]\
+           :/usr/bin/site_perl:[...]'`
+  * [FS#66338](https://bugs.archlinux.org/task/66338)
+]
+
+---
+.left-column[
+## Current Issues
+]
+
+.right-column[
+.gray[
+* Experimental tooling(!!!)
+* Private keys generation
+  * `linux` 🙄
+* Embedding the same `$PATH` multiple times
+  * `haskell-*` 🤦
+  * `PATH='/usr/bin/site_perl:[...]\
+           :/usr/bin/site_perl:[...]'`
+  * [FS#66338](https://bugs.archlinux.org/task/66338)
+]
+* `export PYTHONHASHSEED=0`
+]
+
+---
+.left-column[
+## Current Issues
+]
+
+.right-column[
+.gray[
+* Experimental tooling(!!!)
+* Private keys generation
+  * `linux` 🙄
+* Embedding the same `$PATH` multiple times
+  * `haskell-*` 🤦
+  * `PATH='/usr/bin/site_perl:[...]\
+           :/usr/bin/site_perl:[...]'`
+  * [FS#66338](https://bugs.archlinux.org/task/66338)
+* `export PYTHONHASHSEED=0`
+]
+* General issues still remain....
+]
+
+---
+.left-column[
+## Current Issues
+### !packaging
+]
+
+.right-column[
+```
+curl -S "https://gitlab.com/[snip]/-/commit/deadbeef.patch"
+From: foobar
+Subject: subject
+
+Body
+---
+ doc/user/profile/index.md | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/doc/user/profile/index.md b/doc/user/profile/index.md
+index 3610a2122b25..61d0a8e460ad 100644
+--- a/doc/user/profile/index.md
++++ b/doc/user/profile/index.md
+@@ -250,7 +250,27 @@ When the `_gitlab_session` expires or isn't available,
+[... actual diff ...]
+-- 
+2.26.2
+```
+]
+---
+.left-column[
+## Current Issues
+### !packaging
+]
+
+.right-column[
+
+```
+curl -S "https://gitlab.com/[snip]/-/commit/deadbeef.patch"
+From: foobar
+Subject: subject
+
+Body
+---
+ doc/user/profile/index.md | 22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/doc/user/profile/index.md b/doc/user/profile/index.md
+index 3610a2122b25..61d0a8e460ad 100644
+--- a/doc/user/profile/index.md
++++ b/doc/user/profile/index.md
+@@ -250,7 +250,27 @@ When the `_gitlab_session` expires or isn't available,
+[... actual diff ...]
+-- 
+2.26.2 <<<---
+```
+* Embedded git version!
+* https://gitlab.com/gitlab-org/gitaly/-/issues/2842
+* Fix has been pushed 😃
+]
+---
+.left-column[
+## Contributing
+]
+
+.right-column[
+* Try reproduce your favorite software!
+  * And fix bugs 😃
+* https://reproducible-builds.org
+  * Contains information and documentation
+]
+
+---
+.left-column[
+## Contributing
+]
+
+.right-column[
+.gray[
+* Try reproduce your favorite software!
+  * And fix bugs 😃
+* https://reproducible-builds.org
+  * Contains information and documentation
+]
+* # Demo 💀
+]
+
+???
+```
+PKGDEST=$PWD extra-x86_64-build
+/usr/bin/repro -fd lsb-release-1.4-18-any.pkg.tar.zst
+
+# EDIT THE FILE
+PKGDEST=$PWD extra-x86_64-build
+/usr/bin/repro -fd lsb-release-1.4-18-any.pkg.tar.zst
+```
+
+
+---
+.left-column[
+## Contributing
+]
+
+.right-column[
+.gray[
+* Try reproduce your favorite software!
+  * And fix bugs 😃
+* https://reproducible-builds.org
+  * Contains information and documentation
+* # Demo 💀
+]
+* `#archlinux-reproducible` @ Freenode
+* `#reproducible-builds` @ OFTC
+  * We are starting weekly meetings again!
+]
+
+---
+# Where you can find me:
+* Foxboron at (almost) any IRC network
+* https://linderud.dev
+* https://github.com/Foxboron
+* Twitter: [MortenLinderud](https://twitter.com/MortenLinderud)
+* Email:
+  * morten@linderud.pw
+  * foxboron@archlinux.org
+
+    </textarea>
+    <script src="js/remark-latest.min.js">
+    </script>
+    <script>
+        const slideshow = remark.create({
+            ratio: '16:9',
+            countIncrementalSlides: false,
+            slideNumberFormat: '',
+        });
+    </script>
+  </body>
+</html>

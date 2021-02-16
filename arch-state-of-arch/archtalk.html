@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>A look inside Arch Linux</title>
+    <meta charset="utf-8">
+		<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+  </head>
+  <body>
+    <textarea id="source">
+
+# State of Arch Linux
+#### 36C3 - 27/12/2019
+
+---
+# $ whoami
+
+* Morten Linderud and/or Foxboron
+* Started contributing in 2017
+* Trusted User
+* Involved in the security team and reproducible builds
+
+???
+
+---
+
+# Statistics are fun
+
+* We broke your system 8 times
+* 1 russian email on `[arch-announce]`
+* `[core]` & `[extra]`
+  * 13490 repository releases
+* `[community]`
+  * 43827 repository releases
+
+---
+
+# Reproducible Builds
+
+* archlinux-repro and makrepropkg (devtools)
+* `[core]` statistics:
+  * 3 not tested (linux-lts)
+  * 3 not building
+  * 15 packages not reproucible
+  * 209'ish packages reproducible
+* https://wiki.archlinux.org/index.php/DeveloperWiki:ReproduciblePackages
+
+---
+
+# Trusted Users
+
+* New bylaws requires two sponsors
+* Two news TUs;
+  * Diabonas
+  * kpcyrd
+
+---
+
+# Arch Conf
+
+![](https://conf.archlinux.org/images/conf/groupphoto.jpg)
+
+---
+
+# Arch Conf
+
+* 5th and 6th of October in Berlin
+* 22 members from the Arch team
+* Report at https://conf.archlinux.org
+
+---
+
+# zstd
+
+* Becomming the default compression for Arch
+* Example: go
+  * Decompression;  xz 9 sec & zstd 0.84 sec
+  * Compression;  xz 3 min & zstd 1 min
+  * Size; xz 122 MB  & zstd 121.87 MB
+* Hold my mate....
+
+---
+
+# Python2 is being deprecated!
+
+---
+
+# Python2 is being deprecated!
+
+But, we are probably not dropping python2 01/01/2020 😢
+
+---
+
+# Security
+
+* 182 security advisories published!
+* A fraction of the total security updates
+* Contributors are welcome and much needed!
+  * Review CVEs and advisories, help notify us, submit bugreports
+* `#archlinux-security` or come chat with us :)!
+
+---
+
+# Contribute
+
+* Help on the forums / IRC / mailing lists
+* Documentation on the wiki
+* Contribute PKGBUILDs to the AUR
+* Help the security team out reviewing CVE's
+* Please give us money for food!
+
+---
+
+# Questions
+
+---
+# Q&A
+
+.right-column[
+* Foxboron
+  <!-- * Trusted User / Security / Reproducible Builds -->
+* `coderobe`
+  <!-- * Trusted User / Reproducible Builds -->
+* .comic-sans[ anthraxx ]
+  <!-- * Developer / TU / Security / Reproducible Builds -->
+* DIABONAS
+  <!-- * Trusted User -->
+* Remy
+  <!-- * Developer -->
+* Shibumi
+  <!-- * Trusted User / Security Team -->
+* Alad
+  <!-- * Trusted User / Wiki Admin / IRC OP -->
+* kpcyrd
+  <!-- * Trusted User / Reproducible Builds -->
+* Svenstaro
+  ]
+
+    </textarea>
+    <script src="remark-latest.min.js">
+    </script>
+    <script>
+      const slideshow = remark.create();
+    </script>
+  </body>
+</html>
